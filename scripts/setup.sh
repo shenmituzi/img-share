@@ -2,7 +2,8 @@
 # img-share 自举：起图库 + 起公网隧道，输出可内嵌 URL（跨平台/WSL、重试、状态复用、图库仅回环）
 # 用法: setup.sh <图片目录> [可选端口]
 set -u
-command -v python3 >/dev/null || { echo "[!] 缺少 python3"; exit 1; }
+PY="$(command -v python3 || command -v python || true)"
+[ -z "$PY" ] && { echo "[!] 缺少 python(python3)"; exit 1; }
 CF="$(command -v cloudflared || true)"
 [ -z "$CF" ] && CF="${CLOUDFLARED:-}"
 [ -z "$CF" ] && [ -x "$HOME/.local/bin/cloudflared" ] && CF="$HOME/.local/bin/cloudflared"
@@ -17,7 +18,7 @@ TMP="${TMPDIR:-/tmp}"
 STATE="$TMP/img-share.state"
 PORT="${2:-}"
 LOG="$TMP/img-share-gallery.log"
-[ -z "$PORT" ] && PORT="$(python3 - <<'PY'
+[ -z "$PORT" ] && PORT="$($PY - <<'PY'
 import socket
 s=socket.socket(); s.bind(('127.0.0.1',0)); print(s.getsockname()[1]); s.close()
 PY
@@ -33,13 +34,13 @@ fi
 
 if [ -z "$BASE" ]; then
   if curl -s -o /dev/null --max-time 1 "http://127.0.0.1:$PORT/"; then
-    PORT="$(python3 - <<'PY'
+    PORT="$($PY - <<'PY'
 import socket
 s=socket.socket(); s.bind(('127.0.0.1',0)); print(s.getsockname()[1]); s.close()
 PY
 )"
   fi
-  ( cd "$IMG_DIR" && PYTHONUNBUFFERED=1 python3 -m http.server "$PORT" --bind 127.0.0.1 >"$LOG" 2>&1 & )
+  ( cd "$IMG_DIR" && PYTHONUNBUFFERED=1 $PY -m http.server "$PORT" --bind 127.0.0.1 >"$LOG" 2>&1 & )
   echo "gallery starting on :$PORT ($IMG_DIR)"
   ok=""; for _ in 1 2 3 4 5 6 7 8 9 10; do curl -s -o /dev/null --max-time 1 "http://127.0.0.1:$PORT/" && { ok=1; break; }; sleep 1; done
   [ -z "$ok" ] && { echo "[!] 图库未就绪:"; tail -5 "$LOG"; exit 1; }
