@@ -27,7 +27,7 @@ metadata:
 
 | 依赖 | 用途 | 获取 | 缺了替代 |
 |---|---|---|---|
-| web-access skill | 截图（CDP 驱动浏览器） | 安装到 ~/.dsh/skills/ | 无截图能力则回退"上传已有图/让用户拖入" |
+| web-access skill | 截图（CDP 驱动浏览器） | 安装到 ~/.dsh/skills/（"+waUrl+"） | 无截图能力则回退"上传已有图/让用户拖入" |
 | python3 | 起本地图库服务 | 系统自带 | 无 |
 | cloudflared | 公网隧道（手机可达） | 官方安装；或设环境变量 CLOUDFLARED=/路径/cloudflared | 不装则仅本机/局域网可看 |
 | ffmpeg（可选） | 多图拼网格 | 系统安装 | 只嵌单图，不做网格 |
